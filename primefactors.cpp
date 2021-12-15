@@ -45,8 +45,12 @@ vector<int> findprime(int x)
 int main()
 {
     int number;
-    cout << "Enter a number you want to find the prime factors of: ";
+    cout << "Enter a number you want to find the prime factors of (if x<1, |x| will be computed): ";
     cin >> number;
+    if (number < 0)
+    {
+        number *= -1;
+    }
     printfactors(findprime(number), number);
     return 0;
 }
