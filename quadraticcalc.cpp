@@ -8,10 +8,6 @@ void quadratic(long double a, long double b, long double c)
     complex<long double> x, y;
     x = ((-b + sqrt(complex<long double>((b * b) - (4 * a * c)))) / (2 * a));
     y = ((-b - sqrt(complex<long double>((b * b) - (4 * a * c)))) / (2 * a));
-    if (x == y)
-    {
-        cout << "The only answer is: " << x << endl;
-    }
     string newx;
     string newy;
     if (x.imag() != 0)
@@ -29,6 +25,11 @@ void quadratic(long double a, long double b, long double c)
     else
     {
         newy = to_string(y.real());
+    }
+    if (x == y)
+    {
+        cout << "The only answer is: " << newx << endl;
+        return;
     }
     cout << "The first answer is: " << newx << "\nThe second answer is: " << newy << endl;
 }
