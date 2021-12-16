@@ -1,8 +1,10 @@
 #include <iostream>
 #include <vector>
 using namespace std;
-void printfactors(vector<int> all, int x)
+
+void printfactors(vector<long long> all, long long x)
 {
+    sort(all.begin(), all.end());
     cout << "The prime factors of " << x << " are: ";
     int prev = all[0];
     int count = 0;
@@ -21,30 +23,29 @@ void printfactors(vector<int> all, int x)
     }
     cout << prev << "^" << count << endl;
 }
-vector<int> findprime(int x)
+vector<long long> findprime(long long x)
 {
-    for (int i = 2; i < x; i++)
+    for (long long i = 2; i <= sqrt(x); i++)
     {
         if ((x % i == 0))
         {
-            int y = x / i;
-            vector<int> a, b, c;
+            long long y = x / i;
+            vector<long long> a, b, c;
             a = findprime(i);
             b = findprime(y);
             c.resize(b.size() + a.size());
             merge(a.begin(), a.end(), b.begin(), b.end(), c.begin());
-            sort(c.begin(), c.end());
             return c;
         }
     }
-    vector<int> a;
+    vector<long long> a;
     a.resize(1);
     a[0] = x;
     return a;
 }
 int main()
 {
-    int number;
+    long long number;
     cout << "Enter a number you want to find the prime factors of (if x<1, |x| will be computed): ";
     cin >> number;
     if (number < 0)
