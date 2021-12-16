@@ -38,14 +38,12 @@ char **update(char **arr, int player, int y, bool &win)
         arr[10][15] = '9';
         return arr;
     }
-    if (y < 0 || y > 9)
-    {
         while (y < 0 || y > 9)
         {
             cout << "Choice is not valid, enter a choice from 1-9: ";
             cin >> y;
         }
-    }
+    
     char current = 'X';
     if (player == 2)
     {
