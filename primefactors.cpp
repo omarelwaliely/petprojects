@@ -6,9 +6,9 @@ void printfactors(vector<long long> all, long long x)
 {
     sort(all.begin(), all.end());
     cout << "The prime factors of " << x << " are: ";
-    int prev = all[0];
-    int count = 0;
-    for (int i = 0; i < all.size(); i++)
+    long long prev = all[0];
+    long long count = 0;
+    for (long long i = 0; i < all.size(); i++)
     {
         if (all[i] == prev)
         {
