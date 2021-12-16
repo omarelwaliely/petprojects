@@ -1,0 +1,158 @@
+PageRank(string impressionfile, string graphfile)
+    {
+        //The following code was used before using a general PR in a file, since i couldnt comment on a comment i put the commented version in another file called Pagerankwithcomments.txt
+        graph.resize(30);
+        ifstream input;
+        input.open(impressionfile); //open impressions
+        string all = "";
+        while (getline(input, all)) //while you can, store the line in a variable called all and enter the loop
+        {
+            stringstream current(all);             //store all in a string stream
+            string currentwebsite;                 //this is where the first thing in the line will be stored because the first thing is a website address
+            string temp;                           // this is where the remaining words are stored in the line
+            getline(current, currentwebsite, ','); //up until the first comma store in current website
+            while (!current.eof())
+            {
+                getline(current, temp, ',');                          //this will not exactly go to the next comma because the line finishes, but basically the rest is stored in temp (the rest here is the impression)
+                websiteranks[currentwebsite].impression = stoi(temp); //store the impression inside a website inside the map we declared above
+            }
+        }
+        input.close();
+        input.open(graphfile);
+        all = "";
+        while (getline(input, all)) //reading of graph file
+        {
+            stringstream current(all);
+            string first;
+            string second;
+            /* final representation of adjacency list is:
+            first -> second, second, second, second
+            first -> second, second, second, second
+            first -> second, second, second, second
+            first -> second, second, second, second 
+            first and second in this instance changes, as in the number changes, according to the index of which it is found in the global array "websitelist" during each loop
+            */
+
+            bool flag1, flag2 = false;    //used incase a blank character is read
+            getline(current, first, ','); //store everything up until first comma in a the variable first
+            getline(current, second);     //store the rest in variable second
+            int indexi, indexj;           //used to find the index that will be pushed into the adjacency list
+            for (int i = 0; i < 30; i++)  //iterate through the global array and check if "first" is found in it, if found take its index and store it
+            {
+                if (first == websitelist[i])
+                {
+                    indexi = i;
+                    flag1 = true;
+                    break; //leave loop as theres no need to iterate anymore (slightly decreases complexity but worst case is still that its the last website in the array)
+                }
+            }
+            for (int i = 0; i < 30; i++) //iterate through the global array and check if "second" is found in it, if found take its index and store it
+            {
+                if (second == websitelist[i])
+                {
+                    indexj = i;
+                    flag2 = true;
+                    break; //leave loop as theres no need to iterate anymore (slightly decreases complexity but worst case is still that its the last website in the array)
+                }
+            }
+            if (!flag1 || !flag2) //if blank character we'll skip this iteration
+            {
+                continue;
+            }
+            graph[indexi].push_back(indexj);                 //push j into i of adjacency list
+            websiteranks[websitelist[indexj]].connections++; //this will be used for the page ranking algorithim, we need to see how many elements j is connected to
+            websiteranks[websitelist[indexi]].inconnect++;   //and how many connecttions i has in it
+        }
+        double itsum = 0.0;
+        for (int i = 0; i < 30; i++)
+        {
+            websiteranks[websitelist[i]].prevpr = websiteranks[websitelist[i]].inconnect; //initilizing the pr values to the amount of nodes connected to that website
+            websiteranks[websitelist[i]].pr = websiteranks[websitelist[i]].prevpr;
+        }
+        for (int i = 0; i < 100; i++) //worst case is it iterates 100 times regardless of website list size but this probably will not happen
+        {
+            bool allless = false;        //used to check if there is a difference of -0.01 then the previous page rank, if this is the case then the rank has stabalized
+            for (int j = 0; j < 30; j++) //iterate through all the websites and use the damping factor to caclulate the multiplier
+            {
+                for (int k = 0; k < 30; k++)
+                {
+                    websiteranks[websitelist[k]].multiplier = (double)(websiteranks[websitelist[k]].prevpr * 0.85) / (double)websiteranks[websitelist[k]].connections;
+                }
+                for (int k = 0; k < 30; k++)
+                {
+                    if (find(graph[j].begin(), graph[j].end(), k) != graph[j].end()) //if the k is found in the vector then we need to
+                    {
+                        itsum += websiteranks[websitelist[k]].multiplier; //add its multiplier to the rest of the k's multiploiers
+                    }
+                }
+                websiteranks[websitelist[j]].pr = itsum + 0.15; //finally re-add the damping factor
+                itsum = 0;
+            }
+            for (int j = 0; j < 30; j++)
+            {
+                if (websiteranks[websitelist[j]].pr + 0.01 < (websiteranks[websitelist[j]].prevpr)) //check if the case of -0.01 occured
+                {
+                    break; //if at anypoint it does not then we need to continue calculating for the next iteration
+                }
+                if (j == 29)
+                {
+                    allless = true; //if we are at 29 then all of them had a -0.01 case and this is the correct pr for all the pages.
+                }
+            }
+            if (allless) //the flag was triggered so we can succesffuly break all loops
+            {
+                break;
+            }
+            //if we still need to iterate
+            for (int j = 0; j < 30; j++)
+            {
+                websiteranks[websitelist[j]].prevpr = websiteranks[websitelist[j]].pr; //if we still need to iterate then we also have to set all the previous prs to new pr so we can use it
+            }
+        }
+        //basic max min caluclater
+        double max = -1;
+        double min = 99999999;
+        for (int i = 0; i < 30; i++)
+        {
+            if (websiteranks[websitelist[i]].pr > max)
+            {
+                max = websiteranks[websitelist[i]].pr;
+            }
+            if (websiteranks[websitelist[i]].pr < min)
+            {
+                min = websiteranks[websitelist[i]].pr;
+            }
+        }
+        for (int i = 0; i < 30; i++)
+        {
+            websiteranks[websitelist[i]].pr = (websiteranks[websitelist[i]].pr - min) / (max - min); //normalize all the prs
+            double pr = websiteranks[websitelist[i]].pr;
+            double currentimp = (double)websiteranks[websitelist[i]].impression;
+            //finally use the page rank equation for impressions and ctr to calulate the final rank
+            websiteranks[websitelist[i]].rank = 0.4 * pr + ((1.0 - ((0.1 * currentimp) / (1.0 + (0.1 * currentimp)))) * pr + ((0.1 * currentimp) / (1.0 + (0.1 * currentimp))) * (double)websiteranks[websitelist[i]].clicks) * 0.6;
+        }
+
+        //this is used in the case that the program was initilized at least once
+        /*
+        ifstream input(fullfile);
+        for (int i = 0; i < 30; i++)
+        {
+            input >> websiteranks[websitelist[i]].pr >> websiteranks[websitelist[i]].impression >> websiteranks[websitelist[i]].clicks;
+            double pr = (double)websiteranks[websitelist[i]].pr;
+            double currentimp = (double)websiteranks[websitelist[i]].impression;
+            double ctr = (double)websiteranks[websitelist[i]].clicks / currentimp;
+            websiteranks[websitelist[i]].rank = 0.4 * pr + ((1.0 - ((0.1 * currentimp) / (1.0 + (0.1 * currentimp)))) * pr + ((0.1 * currentimp) / (1.0 + (0.1 * currentimp))) * ctr) * 0.6;
+        }
+        input.close();
+        */
+    }
+    void exitcase(string ogfile)
+    {
+        ofstream output(ogfile);
+        for (int i = 0; i < 30; i++)
+        {
+            output << websiteranks[websitelist[i]].pr << " " << websiteranks[websitelist[i]].impression << " " << websiteranks[websitelist[i]].clicks << endl;
+        }
+        output.close();
+    }
+};
